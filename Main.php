@@ -158,17 +158,36 @@ class Main {
 
     public function deleteMenu() {
         $this->clear();
-        if ($this->roster->count() === 0) {
+        if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
             echo "There are currently no employees.\n";
             readline("Press \"Enter\" key to continue...");
             return;
         }
         
-        echo "***List of Employees on the current Roster***\n";
-        $this->roster->displayForDeletion();
-        $employeeNumber = readline("Enter employee number to delete: ");
-        $this->roster->remove($employeeNumber);
-        readline("Press \"Enter\" key to continue...");
+        while (true) {
+            $this->clear();
+            echo "***List of Employees on the current Roster***\n";
+            $this->roster->displayForDeletion();
+            
+            echo "\nPress [0] to return\n";
+            $employeeNumber = readline("Enter employee number to delete: ");
+            
+            if ($employeeNumber === '0') {
+                return;
+            }
+            
+            if ($this->roster->remove($employeeNumber)) {
+                readline("Press \"Enter\" key to continue...");
+            } else {
+                readline("Press \"Enter\" key to continue...");
+            }
+            
+            if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
+                echo "There are currently no employees.\n";
+                readline("Press \"Enter\" key to continue...");
+                return;
+            }
+        }
     }
 
     public function otherMenu() {
@@ -184,7 +203,7 @@ class Main {
                 $this->clear();
                 echo "Roster size: " . $this->roster->getRosterSize() . PHP_EOL;
                 echo "Available slots: " . $this->roster->getAvailableSlots() . PHP_EOL;
-                echo "EMPLOYEE ROSTER MENUUU" . PHP_EOL;
+                echo "*** EMPLOYEE ROSTER MENU ***" . PHP_EOL;
                 echo "[1] Display All Employee\n";
                 echo "[2] Display Commission Employee\n";
                 echo "[3] Display Hourly Employee\n";
@@ -194,9 +213,10 @@ class Main {
 
                 switch ($displayChoice) {
                     case 0:
+                        $this->otherMenu(); // Return to other menu
                         break;
                     case 1:
-                        if ($this->roster->count() === 0) {
+                        if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
                             echo "There are currently no employees.\n";
                         } else {
                             $this->roster->display();
@@ -240,6 +260,7 @@ class Main {
 
                 switch ($countChoice) {
                     case 0:
+                        $this->otherMenu(); // Return to other menu
                         break;
                     case 1:
                         echo "Total Employees: " . $this->roster->count() . "\n";
@@ -260,7 +281,7 @@ class Main {
                 readline("\nPress \"Enter\" key to continue...");
                 break;
             case 3:
-                if ($this->roster->count() === 0) {
+                if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
                     echo "There are currently no employees.\n";
                 } else {
                     $this->roster->payroll();
@@ -292,7 +313,7 @@ class Main {
     }
 
     public function repeat() {
-        if ($this->roster->count() < $this->size) {
+        if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() < $this->size) {
             echo "Employee Added!\n";
             $this->roster->updateAvailableSlots(); // Ensure available slots are updated
             $c = readline("Add more ? (y to continue): ");
