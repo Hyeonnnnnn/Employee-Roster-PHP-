@@ -11,6 +11,10 @@ class Main {
     private $size;
     private $repeat;
 
+    private function clearScreen() {
+        echo "\033[2J\033[;H";  // ANSI escape sequence to clear screen and move cursor to top
+    }
+
     public function start() {
         $this->clearScreen();
         $this->repeat = true;
@@ -31,9 +35,10 @@ class Main {
         $choice = 0;
 
         while ($this->repeat) {
-            $this->clear();
+            $this->clearScreen();
             $this->menu();
             $choice = readline("Select Menu: ");
+            $this->clearScreen();  // Clear before showing next screen
 
             switch ($choice) {
                 case 1:
@@ -83,7 +88,7 @@ class Main {
     }
 
     public function empType($name, $address, $age, $cName) {
-        $this->clear();
+        $this->clearScreen();
         echo "---Employee Details \n";
         echo "Enter name: $name\n";
         echo "Enter address: $address\n";
@@ -157,7 +162,7 @@ class Main {
     }
 
     public function deleteMenu() {
-        $this->clear();
+        $this->clearScreen();
         if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
             echo "There are currently no employees.\n";
             readline("Press \"Enter\" key to continue...");
@@ -165,7 +170,7 @@ class Main {
         }
         
         while (true) {
-            $this->clear();
+            $this->clearScreen();
             echo "***List of Employees on the current Roster***\n";
             $this->roster->displayForDeletion();
             
@@ -173,146 +178,172 @@ class Main {
             $employeeNumber = readline("Enter employee number to delete: ");
             
             if ($employeeNumber === '0') {
+                $this->clearScreen();
                 return;
             }
             
             if ($this->roster->remove($employeeNumber)) {
                 readline("Press \"Enter\" key to continue...");
+                
+                if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
+                    $this->clearScreen();
+                    echo "There are currently no employees.\n";
+                    readline("Press \"Enter\" key to continue...");
+                    return;
+                }
             } else {
                 readline("Press \"Enter\" key to continue...");
-            }
-            
-            if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
-                echo "There are currently no employees.\n";
-                readline("Press \"Enter\" key to continue...");
-                return;
             }
         }
     }
 
     public function otherMenu() {
-        $this->clear();
-        echo "[1] Display\n";
-        echo "[2] Count\n";
-        echo "[3] Payroll\n";
-        echo "[0] Return\n";
-        $choice = readline("Select Menu: ");
+        $this->clearScreen();
+        do {
+            echo "[1] Display\n";
+            echo "[2] Count\n";
+            echo "[3] Payroll\n";
+            echo "[0] Return\n";
+            $choice = readline("Select Menu: ");
 
-        switch ($choice) {
-            case 1:
-                $this->clear();
-                echo "Roster size: " . $this->roster->getRosterSize() . PHP_EOL;
-                echo "Available slots: " . $this->roster->getAvailableSlots() . PHP_EOL;
-                echo "*** EMPLOYEE ROSTER MENU ***" . PHP_EOL;
-                echo "[1] Display All Employee\n";
-                echo "[2] Display Commission Employee\n";
-                echo "[3] Display Hourly Employee\n";
-                echo "[4] Display Piece Worker\n";
-                echo "[0] Return\n";
-                $displayChoice = readline("Select Menu: ");
-
-                switch ($displayChoice) {
-                    case 0:
-                        $this->otherMenu(); // Return to other menu
-                        break;
-                    case 1:
-                        if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
-                            echo "There are currently no employees.\n";
-                        } else {
-                            $this->roster->display();
-                        }
-                        break;
-                    case 2:
-                        if ($this->roster->countCE() === 0) {
-                            echo "There are currently no employees.\n";
-                        } else {
-                            $this->roster->displayCE();
-                        }
-                        break;
-                    case 3:
-                        if ($this->roster->countHE() === 0) {
-                            echo "There are currently no employees.\n";
-                        } else {
-                            $this->roster->displayHE();
-                        }
-                        break;
-                    case 4:
-                        if ($this->roster->countPE() === 0) {
-                            echo "There are currently no employees.\n";
-                        } else {
-                            $this->roster->displayPE();
-                        }
-                        break;
-                    default:
-                        echo "Invalid Input!";
-                        break;
-                }
-                readline("\nPress \"Enter\" key to continue...");
-                break;
-            case 2:
-                $this->clear();
-                echo "[1] Count All Employee\n";
-                echo "[2] Count Commission Employee\n";
-                echo "[3] Count Hourly Employee\n";
-                echo "[4] Count Piece Worker\n";
-                echo "[0] Return\n";
-                $countChoice = readline("Select Menu: ");
-
-                switch ($countChoice) {
-                    case 0:
-                        $this->otherMenu(); // Return to other menu
-                        break;
-                    case 1:
-                        echo "Total Employees: " . $this->roster->count() . "\n";
-                        break;
-                    case 2:
-                        echo "Total Commission Employees: " . $this->roster->countCE() . "\n";
-                        break;
-                    case 3:
-                        echo "Total Hourly Employees: " . $this->roster->countHE() . "\n";
-                        break;
-                    case 4:
-                        echo "Total Piece Workers: " . $this->roster->countPE() . "\n";
-                        break;
-                    default:
-                        echo "Invalid Input!";
-                        break;
-                }
-                readline("\nPress \"Enter\" key to continue...");
-                break;
-            case 3:
-                if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
-                    echo "There are currently no employees.\n";
-                } else {
-                    $this->roster->payroll();
-                }
-                readline("Press \"Enter\" key to continue...");
-                break;
-            case 0:
-                break;
-            default:
-                echo "Invalid input. Please try again.\n";
-                readline("Press \"Enter\" key to continue...");
-                $this->otherMenu();
-                break;
-        }
-    }
-
-    public function clear() {
-        if (strncasecmp(PHP_OS, 'WIN', 3) == 0) {
-            for ($i = 0; $i < 50; $i++) {
-                echo "\n";
+            switch ($choice) {
+                case 1:
+                    $this->displayMenu();
+                    break;
+                case 2:
+                    $this->countMenu();
+                    break;
+                case 3:
+                    $this->payrollMenu();
+                    break;
+                case 0:
+                    return;
+                default:
+                    echo "Invalid input. Please try again.\n";
+                    readline("Press \"Enter\" key to continue...");
+                    break;
             }
-        } else {
-            system('clear');
-        }
+            $this->clearScreen();
+        } while (true);
     }
 
-    public function clearScreen() {
-        $this->clear();
+    private function displayMenu() {
+        do {
+            $this->clearScreen();
+            echo "[1] Display All Employee\n";
+            echo "[2] Display Commission Employee\n";
+            echo "[3] Display Hourly Employee\n";
+            echo "[4] Display Piece Worker\n";
+            echo "[0] Return\n";
+            $displayChoice = readline("Select Menu: ");
+
+            $this->clearScreen();
+            switch ($displayChoice) {
+                case 0:
+                    return;
+                case 1:
+                    if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
+                        echo "There are currently no employees.\n";
+                    } else {
+                        $this->roster->display();
+                    }
+                    readline("Press \"Enter\" key to continue...");
+                    break;
+                case 2:
+                    $this->clearScreen();
+                    if ($this->roster->countCE() === 0) {
+                        echo "There are currently no commission employees.\n";
+                        readline("Press \"Enter\" key to continue...");
+                    } else {
+                        $this->roster->displayCE();
+                        readline("Press \"Enter\" key to continue...");
+                    }
+                    break;
+                case 3:
+                    $this->clearScreen();
+                    if ($this->roster->countHE() === 0) {
+                        echo "There are currently no hourly employees.\n";
+                        readline("Press \"Enter\" key to continue...");
+                    } else {
+                        $this->roster->displayHE();
+                        readline("Press \"Enter\" key to continue...");
+                    }
+                    break;
+                case 4:
+                    $this->clearScreen();
+                    if ($this->roster->countPE() === 0) {
+                        echo "There are currently no piece workers.\n";
+                        readline("Press \"Enter\" key to continue...");
+                    } else {
+                        $this->roster->displayPE();
+                        readline("Press \"Enter\" key to continue...");
+                    }
+                    break;
+                default:
+                    echo "Invalid Input!\n";
+                    readline("Press \"Enter\" key to continue...");
+                    break;
+            }
+        } while (true);
+    }
+
+    private function countMenu() {
+        do {
+            $this->clearScreen();
+            echo "[1] Count All Employee\n";
+            echo "[2] Count Commission Employee\n";
+            echo "[3] Count Hourly Employee\n";
+            echo "[4] Count Piece Worker\n";
+            echo "[0] Return\n";
+            $countChoice = readline("Select Menu: ");
+
+            $this->clearScreen();
+            switch ($countChoice) {
+                case 0:
+                    return;
+                case 1:
+                    echo "Total Employees: " . $this->roster->count() . "\n";
+                    readline("Press \"Enter\" key to continue...");
+                    break;
+                case 2:
+                    echo "Total Commission Employees: " . $this->roster->countCE() . "\n";
+                    readline("Press \"Enter\" key to continue...");
+                    break;
+                case 3:
+                    echo "Total Hourly Employees: " . $this->roster->countHE() . "\n";
+                    readline("Press \"Enter\" key to continue...");
+                    break;
+                case 4:
+                    echo "Total Piece Workers: " . $this->roster->countPE() . "\n";
+                    readline("Press \"Enter\" key to continue...");
+                    break;
+                default:
+                    echo "Invalid Input!\n";
+                    readline("Press \"Enter\" key to continue...");
+                    break;
+            }
+        } while (true);
+    }
+
+    private function payrollMenu() {
+        do {
+            $this->clearScreen();
+            if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() === 0) {
+                echo "There are currently no employees.\n";
+            } else {
+                $this->roster->payroll();
+            }
+            echo "\n[0] Return\n";
+            $choice = readline("Select Menu: ");
+            
+            if ($choice === '0') {
+                return;
+            }
+        } while (true);
     }
 
     public function repeat() {
+        $this->clearScreen();
         if ($this->roster->getRosterSize() - $this->roster->getAvailableSlots() < $this->size) {
             echo "Employee Added!\n";
             $this->roster->updateAvailableSlots(); // Ensure available slots are updated
